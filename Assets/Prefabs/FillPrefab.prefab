@@ -89,7 +89,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93999b92a426bac4ea5fcfc73bd6dbe5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Fill
+  value: 0
   valueDisplay: {fileID: 4179399434544411351}
+  speed: 1500
 --- !u!1 &3831333270221498608
 GameObject:
   m_ObjectHideFlags: 0
