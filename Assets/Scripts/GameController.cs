@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
+    
     public static GameController instance;
     public static int ticker;
     public static bool isMoved;
     
     [SerializeField] private GameObject fillPrefab;
-    [SerializeField] private Transform[] allCells;
+    [SerializeField] private Cell[] allCells;
 
     private Vector2 _startPosition;
     private Vector2 _endPosition;
@@ -22,6 +25,11 @@ public class GameController : MonoBehaviour
 
     public int myScore;
     [SerializeField] private TMP_Text scoreDisplay;
+
+    public int gameOverCounter;
+    [SerializeField] private GameObject gameOverPanel;
+    
+    private List<Fill> _allFills = new List<Fill>();
 
     private void OnEnable()
     {
@@ -39,15 +47,6 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-            SpawnFill();
-        
-        // Мувмент клеток
-        // if (Input.GetKeyDown(KeyCode.W))
-        // {
-        //     slide("w");
-        // }
-        
         // Отслеживание свайпов
         // if (Input.touchCount > 0)
         // {
@@ -74,31 +73,71 @@ public class GameController : MonoBehaviour
         }
     }
     
-    // Спавн клеток
+    public void RegisterFill(Fill fill)
+    {
+        if (!_allFills.Contains(fill))
+            _allFills.Add(fill);
+    }
+    
+    public void UnregisterFill(Fill fill)
+    {
+        if (_allFills.Contains(fill))
+            _allFills.Remove(fill);
+    }
+    
+    private bool AreAllFillsStationary()
+    {
+        foreach (Fill fill in _allFills)
+        {
+            if (fill.IsMoving)
+                return false;
+        }
+        return true;
+    }
+    
+    public IEnumerator WaitForAnimationsAndSpawn()
+    {
+        yield return new WaitUntil(AreAllFillsStationary);
+        
+        yield return new WaitForSeconds(0.01f);
+        
+        SpawnFill();
+    }
+    
     public void SpawnFill()
     {
+        bool isFull = true;
+        for (int i = 0; i < allCells.Length; i++)
+        {
+            if (allCells[i].fill == null)
+            {
+                isFull = false;
+            }
+        }
+        
+        if (isFull)
+            return;
+        
         int whichSpawn = UnityEngine.Random.Range(0, allCells.Length);
         
-        // Проверяется, свободна ли клетка
-        if (allCells[whichSpawn].childCount != 0)
+        if (allCells[whichSpawn].transform.childCount != 0)
         {
             Debug.Log("Already filled");
             SpawnFill();
             return;
         }
         
-        // Шанс появления клетки (2 - 80%, 4- 20%)
         float chance = UnityEngine.Random.Range(0f, 1f);
         if (chance < 0.8f)
         {
-            GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn]);
+            GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn].transform);
             Fill tempFillValue = tempFill.GetComponent<Fill>();
             allCells[whichSpawn].GetComponent<Cell>().fill = tempFillValue;
             tempFillValue.FillValueUpdate(2);
         }
         else
         {
-            GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn]);
+            GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn].transform);
             Fill tempFillValue = tempFill.GetComponent<Fill>();
             allCells[whichSpawn].GetComponent<Cell>().fill = tempFillValue;
             tempFillValue.FillValueUpdate(4);
@@ -109,22 +148,20 @@ public class GameController : MonoBehaviour
     {
         int whichSpawn = UnityEngine.Random.Range(0, allCells.Length);
         
-        // Проверяется, свободна ли клетка
-        if (allCells[whichSpawn].childCount != 0)
+        if (allCells[whichSpawn].transform.childCount != 0)
         {
             Debug.Log("Already filled");
             SpawnFill();
             return;
         }
         
-        GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn]); 
+        GameObject tempFill = Instantiate(fillPrefab, allCells[whichSpawn].transform); 
         Fill tempFillValue = tempFill.GetComponent<Fill>();
         allCells[whichSpawn].GetComponent<Cell>().fill = tempFillValue; 
         tempFillValue.FillValueUpdate(2);
         
     }
     
-    // Определяем направление для смещения
     private void calcMove()
     {
         Vector2 delta = _endPosition - _startPosition;
@@ -135,12 +172,14 @@ public class GameController : MonoBehaviour
             {
                 ticker = 0;
                 isMoved = false;
+                gameOverCounter = 0;
                 slide("right");
             }
             else
             {
                 ticker = 0;
                 isMoved = false;
+                gameOverCounter = 0;
                 slide("left");
             }
         }
@@ -150,12 +189,14 @@ public class GameController : MonoBehaviour
             {
                 ticker = 0;
                 isMoved = false;
+                gameOverCounter = 0;
                 slide("up");
             }
             else
             {
                 ticker = 0;
                 isMoved = false;
+                gameOverCounter = 0;
                 slide("down");
             }
         }
@@ -165,5 +206,19 @@ public class GameController : MonoBehaviour
     {
         myScore += score;
         scoreDisplay.text = myScore.ToString();
+    }
+
+    public void GameOverCheck()
+    {
+        gameOverCounter++;
+        if (gameOverCounter >= 16)
+        {
+            gameOverPanel.SetActive(true);
+        }
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene("SampleScene");
     }
 }

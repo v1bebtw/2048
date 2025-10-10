@@ -22,7 +22,7 @@ public class Cell : MonoBehaviour
     
     private void OnSlide(string whereToMove)
     {
-        Debug.Log($"{whereToMove}");
+        CellCheck();
         if (whereToMove == "up")
         {
             if (up != null)
@@ -59,7 +59,7 @@ public class Cell : MonoBehaviour
         GameController.ticker++;
         if (GameController.ticker == 4 && GameController.isMoved) 
         {
-            GameController.instance.SpawnFill();
+            GameController.instance.StartCoroutine(GameController.instance.WaitForAnimationsAndSpawn());
         }
     }
 
@@ -273,5 +273,41 @@ public class Cell : MonoBehaviour
         }
         
         SlideRight(currentCell.left);
+    }
+
+    private void CellCheck()
+    {
+        if (fill == null)
+            return;
+
+        if (up != null)
+        {
+            if (up.fill == null)
+                return;
+            if (up.fill.value == fill.value)
+                return;
+        }
+        if (down != null)
+        {
+            if (down.fill == null)
+                return;
+            if (down.fill.value == fill.value)
+                return;
+        }
+        if (right != null)
+        {
+            if (right.fill == null)
+                return;
+            if (right.fill.value == fill.value)
+                return;
+        }
+        if (left != null)
+        {
+            if (left.fill == null)
+                return;
+            if (left.fill.value == fill.value)
+                return;
+        }
+        GameController.instance.GameOverCheck();
     }
 }

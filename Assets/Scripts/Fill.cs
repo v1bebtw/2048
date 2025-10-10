@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Serialization;
 
 public class Fill : MonoBehaviour
 {
@@ -10,6 +11,19 @@ public class Fill : MonoBehaviour
     [SerializeField] private TMP_Text valueDisplay;
     [SerializeField] private float speed;
     private bool _hasMerge;
+    public bool IsMoving => transform.localPosition != Vector3.zero;
+
+    private void Start()
+    {
+        GameController.instance.RegisterFill(this);
+    }
+    
+    private void OnDestroy()
+    {
+        if (GameController.instance != null)
+            GameController.instance.UnregisterFill(this);
+    }
+    
     private void Update()
     {
         if (transform.localPosition != Vector3.zero)
