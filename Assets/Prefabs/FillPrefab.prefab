@@ -91,6 +91,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Fill
   value: 0
   valueDisplay: {fileID: 4179399434544411351}
+  tileImage: {fileID: 147919573918765447}
   speed: 1500
 --- !u!1 &3831333270221498608
 GameObject:
